@@ -1,0 +1,24 @@
+sudo: required
+services:
+  -docker
+
+before-install:
+  - docker build -t casper98561/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true USERNAME/react-test npm test
+
+after_success:
+  - docker build -t casper98561/multi-client ./client
+  - docker build -t casper98561/multi-nginx ./nginx
+  - docker build -t casper98561/multi-server ./server
+  - docker build -t casper98561/multi-worker ./worker
+  
+  #Log in to docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+
+  #Take those images and push into dockerhub
+  - docker push casper98561/multi-client
+  - docker push casper98561/multi-nginx
+  - docker push casper98561/multi-server
+  - docker push casper98561/multi-worker
